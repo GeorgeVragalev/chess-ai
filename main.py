@@ -1,3 +1,4 @@
+# code taken from https://github.com/apostolisv/chess-ai
 import graphics
 from Board import *
 
@@ -13,3 +14,5 @@ if __name__ == '__main__':
         graphics.draw_background(board)
         keep_playing = graphics.start(board)
         
+
+    
