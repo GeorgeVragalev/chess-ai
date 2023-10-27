@@ -228,9 +228,9 @@ class Board:
                 if isinstance(self[i][j], ChessPiece):
                     piece = self[i][j]
                     if piece.color == 'white':
-                        white_points += piece.get_score()
+                        white_points += piece.get_score(self)
                     else:
-                        black_points += piece.get_score()
+                        black_points += piece.get_score(self)
         if self.game_mode == 0:
             return black_points - white_points
         return white_points - black_points

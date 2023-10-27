@@ -1,6 +1,8 @@
 import operator
 from itertools import product
 
+from position_values import *
+
 
 class ChessPiece:
 
@@ -51,7 +53,7 @@ class ChessPiece:
         self.x = position_x
         self.moved = self.has_moved_history.pop()
 
-    def get_score(self):
+    def get_score(self, board):
         return 0
 
     def __repr__(self):
@@ -79,8 +81,15 @@ class Pawn(ChessPiece):
                 moves.append((x, self.y + 1))
         return moves
 
-    def get_score(self):
-        return 10
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 10
+        positional_value = SCALE_FACTOR * PAWN_POSITIONAL_VALUES[x][y]
+        return material_value + positional_value
 
 
 class Knight(ChessPiece):
@@ -99,8 +108,15 @@ class Knight(ChessPiece):
                 moves.append((x, y))
         return moves
 
-    def get_score(self):
-        return 20
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 30
+        positional_value = SCALE_FACTOR * KNIGHT_POSITIONAL_VALUES[x][y]
+        return material_value + positional_value
 
 
 class Bishop(ChessPiece):
@@ -123,8 +139,15 @@ class Bishop(ChessPiece):
                     break
         return moves
 
-    def get_score(self):
-        return 30
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 30
+        positional_value = SCALE_FACTOR * BISHOP_POSITIONAL_VALUES[x][y]
+        return material_value + positional_value
 
 
 class Rook(ChessPiece):
@@ -163,8 +186,15 @@ class Rook(ChessPiece):
                     break
         return moves
 
-    def get_score(self):
-        return 30
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 50
+        positional_value = SCALE_FACTOR * ROOK_POSITIONAL_VALUES[x][y]
+        return material_value + positional_value
 
 
 class Queen(ChessPiece):
@@ -181,8 +211,15 @@ class Queen(ChessPiece):
             moves.extend(bishop_moves)
         return moves
 
-    def get_score(self):
-        return 240
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 90
+        positional_value = SCALE_FACTOR * QUEEN_POSITIONAL_VALUES[x][y]
+        return material_value + positional_value
 
 
 class King(ChessPiece):
@@ -213,5 +250,53 @@ class King(ChessPiece):
                 moves.append((self.x, y))
         return moves
 
-    def get_score(self):
-        return 1000
+    def get_king_safety_value(self, board):
+        x = self.x
+        y = self.y
+        # Calculate the safety value based on the pieces surrounding the king
+        adjacent_positions = set([
+            (x + i, y + j)
+            for i in [-1, 0, 1] for j in [-1, 0, 1]
+            if 0 <= x + i < 8 and 0 <= y + j < 8 and not (i == 0 and j == 0)
+            # Ensure valid board position and exclude the king's position
+        ])
+
+        friendlies_around = 0
+        enemies_around = 0
+
+        if self.color == "white":
+            friendlies = board.whites
+            enemies = board.blacks
+        else:
+            friendlies = board.blacks
+            enemies = board.whites
+
+        for piece in friendlies:
+            if (piece.x, piece.y) in adjacent_positions:
+                friendlies_around += 1
+
+        for piece in enemies:
+            if (piece.x, piece.y) in adjacent_positions:
+                enemies_around += 1
+
+        # Here, we're using simple illustrative values:
+        # A bonus of 1 for each friendly piece and a penalty of 5 for each opponent piece.
+        # These values can be fine-tuned.
+        king_safety_value = friendlies_around * 0.5 - enemies_around * 1
+
+        return king_safety_value
+
+    def get_score(self, board):
+        x = self.x
+        y = self.y
+        if self.color == "black":
+            x, y = 7 - x, 7 - y  # Mirror the coordinates
+
+        material_value = 1000
+        positional_value = SCALE_FACTOR * KING_POSITIONAL_VALUES[x][y]
+
+
+        # get king safety value
+        king_safety = self.get_king_safety_value(board)
+
+        return material_value + positional_value + king_safety
