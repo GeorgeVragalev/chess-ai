@@ -5,10 +5,11 @@ from functools import wraps
 from Logger import Logger, BoardRepr
 import random
 
-
+# Initializing a logger for logging game moves and states
 logger = Logger()
 
 
+# Decorator function to log the game tree during the minimax algorithm
 def log_tree(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -20,6 +21,7 @@ def log_tree(func):
     return wrapper
 
 
+# Function to write the board state to a file
 def write_to_file(board: Board, current_depth):
     global logger
     if board.depth == current_depth:
@@ -28,17 +30,22 @@ def write_to_file(board: Board, current_depth):
     logger.append(board_repr)
 
 
+# Check if a move is capturing an opponent's piece
 def is_capturing_move(board, move):
     return isinstance(board[move[0]][move[1]], ChessPiece)
 
 
+transposition_table = {}
+
+# Minimax algorithm with alpha-beta pruning for AI move selection
 @log_tree
 def minimax(board, depth, alpha, beta, max_player, save_move, data):
-
+    # Base cases
     if depth == 0 or board.is_terminal():
         data[1] = board.evaluate()
         return data
 
+    # Maximizing player logic
     if max_player:
         max_eval = -math.inf
         for i in range(8):
@@ -66,6 +73,7 @@ def minimax(board, depth, alpha, beta, max_player, save_move, data):
                         if beta <= alpha:
                             break
         return data
+    # Minimizing player logic
     else:
         min_eval = math.inf
         for i in range(8):
@@ -87,6 +95,7 @@ def minimax(board, depth, alpha, beta, max_player, save_move, data):
         return data
 
 
+# Uses the minimax function iteratively up to a maximum depth
 def progressive_deepening(board, max_depth):
     best_evaluation = -math.inf
     best_move_data = []
@@ -98,14 +107,16 @@ def progressive_deepening(board, max_depth):
     return best_move_data
 
 
+# Check if the game is still in its opening phase
 def is_in_opening(board):
-    # Simple heuristic: if fewer than 1 pieces have been captured, we are still in the opening
+    # Simple heuristic: if fewer than 1 piece have been captured, we are still in the opening
     if board.opening_move_made:
         return False
     captured_count = 32 - len([piece for row in board for piece in row if isinstance(piece, ChessPiece)])
     return captured_count < 1
 
 
+# Get a predefined opening move for the AI
 def get_opening_move():
     possible_moves = list(OPENING_MOVES.keys())
     if not possible_moves:
@@ -115,7 +126,9 @@ def get_opening_move():
     return start_square, end_square
 
 
+# AI move function which decides whether to use an opening move, minimax, or other logic
 def get_ai_move(board):
+    # Check for opening moves
     if is_in_opening(board):
         move = get_opening_move()
         if move:
@@ -123,6 +136,9 @@ def get_ai_move(board):
             piece = board[start_square[0]][start_square[1]]
             board.make_move(piece, end_square[0], end_square[1])
             board.opening_move_made = True
+            if board.log:  # Logging the move
+                logger.write()
+
             return True
 
     # Using progressive deepening with a max depth
@@ -132,28 +148,13 @@ def get_ai_move(board):
         piece_and_move = random.choice([move for move in moves_data[0] if move[2] == best_score])
         piece, move_coords = piece_and_move[0], piece_and_move[1]
         board.make_move(piece, move_coords[0], move_coords[1])
+        if board.log:  # Logging the move
+            logger.write()
         return True
     return False
 
 
-# def get_ai_move(board):
-#     moves = minimax(board, board.depth, -math.inf, math.inf, True, True, [[], 0])
-#     if board.log:
-#         logger.write()
-#     # moves = [[pawn, move, move_score], [..], [..],[..], total_score]
-#     if len(moves[0]) == 0:
-#         return False
-#     best_score = max(moves[0], key=lambda x: x[2])[2]
-#     piece_and_move = random.choice([move for move in moves[0] if move[2] == best_score])
-#     piece = piece_and_move[0]
-#     move = piece_and_move[1]
-#     if isinstance(piece, ChessPiece) and len(move) > 0 and isinstance(move, tuple):
-#         board.make_move(piece, move[0], move[1])
-#     return True
-
-
-
-
+# Random move generator for AI
 def get_random_move(board):
     pieces = []
     moves = []
