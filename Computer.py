@@ -98,6 +98,44 @@ def progressive_deepening(board, max_depth):
     return best_move_data
 
 
+def is_in_opening(board):
+    # Simple heuristic: if fewer than 1 pieces have been captured, we are still in the opening
+    if board.opening_move_made:
+        return False
+    captured_count = 32 - len([piece for row in board for piece in row if isinstance(piece, ChessPiece)])
+    return captured_count < 1
+
+
+def get_opening_move():
+    possible_moves = list(OPENING_MOVES.keys())
+    if not possible_moves:
+        return None
+    start_square = random.choice(possible_moves)
+    end_square = OPENING_MOVES[start_square]
+    return start_square, end_square
+
+
+def get_ai_move(board):
+    if is_in_opening(board):
+        move = get_opening_move()
+        if move:
+            start_square, end_square = move[0], move[1]
+            piece = board[start_square[0]][start_square[1]]
+            board.make_move(piece, end_square[0], end_square[1])
+            board.opening_move_made = True
+            return True
+
+    # Using progressive deepening with a max depth
+    moves_data = progressive_deepening(board, board.depth)
+    if moves_data and len(moves_data[0]) > 0:
+        best_score = max(moves_data[0], key=lambda x: x[2])[2]
+        piece_and_move = random.choice([move for move in moves_data[0] if move[2] == best_score])
+        piece, move_coords = piece_and_move[0], piece_and_move[1]
+        board.make_move(piece, move_coords[0], move_coords[1])
+        return True
+    return False
+
+
 # def get_ai_move(board):
 #     moves = minimax(board, board.depth, -math.inf, math.inf, True, True, [[], 0])
 #     if board.log:
@@ -114,16 +152,6 @@ def progressive_deepening(board, max_depth):
 #     return True
 
 
-def get_ai_move(board):
-    # Using progressive deepening with a max depth
-    moves_data = progressive_deepening(board, board.depth)
-    if moves_data and len(moves_data[0]) > 0:
-        best_score = max(moves_data[0], key=lambda x: x[2])[2]
-        piece_and_move = random.choice([move for move in moves_data[0] if move[2] == best_score])
-        piece, move_coords = piece_and_move[0], piece_and_move[1]
-        board.make_move(piece, move_coords[0], move_coords[1])
-        return True
-    return False
 
 
 def get_random_move(board):

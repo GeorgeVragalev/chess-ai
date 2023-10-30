@@ -71,3 +71,11 @@ KING_POSITIONAL_VALUES = [
     [40, 40, 20, 10, 10, 20, 40, 40],
     [40, 50, 30, 20, 20, 30, 50, 40]
 ]
+
+
+OPENING_MOVES = {
+    (6, 3): (4, 3),  # Queen's Pawn Opening
+    (6, 4): (4, 4),  # King's Pawn Opening
+    (6, 2): (5, 2),  # Queen's Knight Pawn Opening
+    (6, 5): (5, 5),  # King's Knight Pawn Opening
+}

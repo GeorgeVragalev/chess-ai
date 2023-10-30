@@ -1,6 +1,17 @@
 from ChessPiece import *
 from copy import deepcopy
 
+"""
+X
+7
+6
+5
+4
+3
+2
+1
+0 1 2 3 4 5 6 7 Y
+"""
 
 class Board:
 
@@ -13,6 +24,7 @@ class Board:
         self.depth = depth
         self.ai = ai
         self.log = log
+        self.opening_move_made = False
 
     def initialize_board(self):
         for i in range(8):
