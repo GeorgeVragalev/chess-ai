@@ -1,3 +1,5 @@
+import random
+
 SCALE_FACTOR = 0.1  # 10%
 
 # Pawn positional values
@@ -79,3 +81,6 @@ OPENING_MOVES = {
     (6, 2): (5, 2),  # Queen's Knight Pawn Opening
     (6, 5): (5, 5),  # King's Knight Pawn Opening
 }
+
+# Assuming 6 pieces (Pawn, Knight, Bishop, Rook, Queen, King) for both colors
+ZOBRIST_TABLE = [[[random.randint(1, 2 ** 64 - 1) for _ in range(8)] for _ in range(8)] for _ in range(12)]

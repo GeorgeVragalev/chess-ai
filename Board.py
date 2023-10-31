@@ -1,5 +1,6 @@
 from ChessPiece import *
 from copy import deepcopy
+import random
 
 """
 X
@@ -13,12 +14,12 @@ X
 0 1 2 3 4 5 6 7 Y
 """
 
-class Board:
 
+class Board:
     whites = []
     blacks = []
 
-    def __init__(self, game_mode, ai=False, depth=2, log=False):    # game_mode == 0 : whites down/blacks up
+    def __init__(self, game_mode, ai=False, depth=2, log=False):  # game_mode == 0 : whites down/blacks up
         self.board = []
         self.game_mode = game_mode
         self.depth = depth
@@ -62,6 +63,16 @@ class Board:
         if self.game_mode != 0:
             self.reverse()
 
+    def compute_hash(self):
+        h = 0
+        for i in range(8):
+            for j in range(8):
+                piece = self[i][j]
+                if isinstance(piece, ChessPiece):
+                    piece_type = piece.piece_to_index()
+                    h ^= ZOBRIST_TABLE[piece_type][i][j]
+        return h
+
     def save_pieces(self):
         for i in range(8):
             for j in range(8):
@@ -71,7 +82,44 @@ class Board:
                     else:
                         self.blacks.append(self[i][j])
 
-    def make_move(self, piece, x, y, keep_history=False):    # history is logged when ai searches for moves
+    # Check if a move is capturing an opponent's piece
+    def is_capturing_move(self, move):
+        return isinstance(self[move[0]][move[1]], ChessPiece)
+
+    def generate_moves(self, max_player: bool):
+        """Generates valid moves for the current player.
+
+        Args:
+            max_player (bool): If True, generate moves for maximizing player, otherwise for minimizing player.
+
+        Returns:
+            list: A list of tuples. Each tuple contains a piece and a valid move for that piece.
+        """
+        moves_list = []
+
+        # Define the player color based on max_player
+        # Define the player color based on max_player
+        if max_player:
+            target_color = self.get_opponent_color()  # Get moves for opponent pieces
+        else:
+            target_color = self.get_player_color()
+
+        for i in range(8):
+            for j in range(8):
+                if isinstance(self[i][j], ChessPiece) and self[i][j].color == target_color:
+                    piece = self[i][j]
+                    valid_moves = piece.filter_moves(piece.get_moves(self), self)
+
+                    # Sort moves so that capturing moves are evaluated first
+                    valid_moves.sort(key=lambda move: self.is_capturing_move(move), reverse=True)
+
+                    # Append moves to the moves list
+                    for move in valid_moves:
+                        moves_list.append((piece, move))
+
+        return moves_list
+
+    def make_move(self, piece, x, y, keep_history=False):  # history is logged when ai searches for moves
         old_x = piece.x
         old_y = piece.y
         if keep_history:
@@ -134,6 +182,11 @@ class Board:
         if self.game_mode == 0:
             return 'white'
         return 'black'
+
+    def get_opponent_color(self):
+        if self.game_mode == 0:
+            return 'black'
+        return 'white'
 
     def king_is_threatened(self, color, move=None):
         if color == 'white':
@@ -268,5 +321,3 @@ class Board:
         if piece.color == 'white':
             return self.whiteKing
         return self.blackKing
-
-

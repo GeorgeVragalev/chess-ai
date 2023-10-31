@@ -19,6 +19,23 @@ class ChessPiece:
         self.type = self.__class__.__name__
         self.unicode = unicode
 
+    def piece_to_index(self):
+        piece_map = {
+            'Pawn': 0,
+            'Knight': 1,
+            'Bishop': 2,
+            'Rook': 3,
+            'Queen': 4,
+            'King': 5
+        }
+
+        index = piece_map[self.type]
+        if self.color == "Black":
+            index += 6
+
+        return index
+
+
     def filter_moves(self, moves, board):
         final_moves = moves[:]
         for move in moves:
