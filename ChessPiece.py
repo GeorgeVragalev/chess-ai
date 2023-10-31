@@ -280,7 +280,7 @@ class King(ChessPiece):
                 enemies_around += 1
 
         # Here, we're using simple illustrative values:
-        # A bonus of 1 for each friendly piece and a penalty of 5 for each opponent piece.
+        # A bonus of 1 for each friendly piece and a penalty of 0.5 for each opponent piece.
         # These values can be fine-tuned.
         king_safety_value = friendlies_around * 0.5 - enemies_around * 1
 
